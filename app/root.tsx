@@ -1,3 +1,5 @@
+// src/root.tsx
+import React from "react";
 import {
   Links,
   Meta,
@@ -5,11 +7,16 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import moment from "moment";
+import "moment/locale/pt-br"; // Importa o locale pt-br
 import "./tailwind.css";
+
+// Configura o locale globalmente
+moment.locale("pt-br");
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
