@@ -3,9 +3,11 @@ html {
   font-size: 14px;
 }
 
-table {
+.tabela {
   width: 100%;
-  border-collapse: collapse;
+  background-color: white;
+  border: 1px solid #d1d5db; 
+
 }
 
 th, td {
@@ -14,7 +16,13 @@ th, td {
   border-bottom: 1px solid #ddd;
 }
 
+td:last-child{
+  border: none;
+}
+
+
 th {
+  color: #337AB7;
   background-color: #f4f4f4;
 }
 
@@ -37,4 +45,27 @@ tfoot {
 
 tfoot th {
   font-weight: normal;
+}
+
+.center{
+  width: 100vw;
+  display: flex;
+  justify-content: center  ;
+  align-items: center;
+
+}
+
+.search_bar{
+  padding: 0.5rem;
+  border: 1px solid #d1d5db; 
+  border-radius: 0.375rem; 
+  outline: none;
+  width: 200px;
+}
+
+.search_area{
+  align-items: center;
+  justify-content: end;
+  display: flex  ;
+  flex-wrap: wrap;
 }

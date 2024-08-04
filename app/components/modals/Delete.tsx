@@ -33,7 +33,7 @@ const DeleteModal: React.FC<TrashRecordProps> = ({ id, name }) => {
     };
 
     return (
-        <button onClick={handleDelete} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+        <button onClick={handleDelete} title='Excluir' style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
             <FaTrashAlt size={20} color="#2F80ED" />
         </button>
     );

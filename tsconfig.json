@@ -6,7 +6,7 @@
     "**/.server/**/*.tsx",
     "**/.client/**/*.ts",
     "**/.client/**/*.tsx"
-, "app/components/table/index.tsx", "app/routes/table.tsx"  ],
+, "app/components/table/index.tsx", "app/routes/table.tsx", "app/scripts/create-user.js", "app/scripts/delete-all-users.js"  ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["@remix-run/node", "vite/client"],

@@ -13,4 +13,8 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  server: {
+    host: '26.159.196.229', // Define o IP para o servidor
+    port: 3000,        // Define a porta para o servidor
+  },
 });
