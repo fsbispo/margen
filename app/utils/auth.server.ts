@@ -5,6 +5,7 @@ import bcryptjs from 'bcryptjs';
 const { compare } = bcryptjs;
 import { getSession, commitSession, destroySession } from '~/sessions';
 import { LoaderFunction, redirect } from '@remix-run/node';
+const { hash } = bcryptjs;
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -19,9 +20,20 @@ export async function createUserToken(user: User) {
   return token;
 }
 
-export async function verifyToken(token: string): Promise<DecodedUser | null> {
+export async function createUser(name: string, password: string, type: number) {
+  const hashedPassword = await hash(password, 10);
+  return await db.user.create({
+      data: {
+          name,
+          password: hashedPassword,
+          type
+      }
+  });
+}
+
+export async function verifyToken(token: any): Promise<DecodedUser | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token.token, JWT_SECRET);
     return decoded as DecodedUser;
   } catch (error) {
     return null;

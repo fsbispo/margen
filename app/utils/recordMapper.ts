@@ -1,9 +1,11 @@
 import { Record } from '@prisma/client';
 import { Clinic } from '~/enumerators/Clinic';
 import { ExamType } from '~/enumerators/ExamType';
+import { ExamText } from '~/enumerators/ExamType';
 import { Status } from '~/enumerators/Status';
-import { RecordResponse } from '~/interfaces/Record/RecordResponse';
+import { RecordResponse } from '~/interfaces/IRecord';
 import { secondsToHHMMSS } from '~/util';
+import { formatDate } from '~/util';
 
 const mapClinic = (clinic: number): string => {
     switch (clinic) {
@@ -19,11 +21,11 @@ const mapClinic = (clinic: number): string => {
 const mapType = (type: number): string => {
     switch (type) {
         case ExamType.EXAME_CLINICO:
-            return 'Exame Clínico';
+            return ExamText[ExamType.EXAME_CLINICO];
         case ExamType.COMPLEMENTARES:
-            return 'Exame Complementar';
+            return ExamText[ExamType.COMPLEMENTARES];
         case ExamType.EXAME_SIMPLES:
-            return 'Exame Simples';
+            return ExamText[ExamType.EXAME_SIMPLES];
         default:
             return '';
     }
@@ -48,9 +50,12 @@ const mapRecord = (record: Record): RecordResponse => {
         observation: record.observation,
         type: mapType(record.type),
         status: mapStatus(record.status),
+        intStatus: record.status,
         clinic: mapClinic(record.clinic),
         entryAt: new Date(record.entryAt),
+        entryAtString: formatDate(new Date(record.entryAt)),
         confirmedAt: record.confirmedAt ? new Date(record.confirmedAt) : null,
+        confirmedAtString: record.confirmedAt ? formatDate(new Date(record.confirmedAt)) : '',
         permanence: record.permanence ? secondsToHHMMSS(record.permanence) : '',
     };
 };

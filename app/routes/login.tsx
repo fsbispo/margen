@@ -1,7 +1,7 @@
 import { Form, useActionData, useNavigate } from '@remix-run/react';
-import { ActionFunction, json } from '@remix-run/node';
-import { login } from '~/utils/auth.server';
-import { getSession } from '~/sessions';
+import { ActionFunction, json, redirect } from '@remix-run/node';
+import { login, createUser } from '~/utils/auth.server';
+import { getSession, commitSession } from '~/sessions';
 import logo from '~/assets/images/logotipo-margen-med.png';
 import ErrorModal from '~/components/modals/Error';
 import { useEffect, useState } from 'react';
@@ -21,19 +21,15 @@ export const action: ActionFunction = async ({ request }) => {
     const password = formData.get("password") as string;
 
     try {
-        const data = await login(name, password);
+        const token = await login(name, password);
 
-        const token = data?.token;
-        const type = data?.type;
-
-        const session = await getSession(request.headers.get("Cookie"));
+        const session = await getSession();
+        
         session.set("token", token);
 
-        return json({
-            user: {
-                token,
-                name,
-                type,
+        return redirect("/home", {
+            headers: {
+                "Set-Cookie": await commitSession(session),
             },
         });
     } catch (error: any) {
@@ -41,19 +37,17 @@ export const action: ActionFunction = async ({ request }) => {
     }
 };
 
-export default function Login() {
+  export default function Login() {
     const actionData = useActionData<ActionData>();
-    const navigate = useNavigate();
     const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
 
     useEffect(() => {
         if (actionData?.error) {
             setShowErrorModal(true);
-        } else if (actionData?.user) {
+        } else {
             setShowErrorModal(false);
-            navigate('/home', { replace: true });
         }
-    }, [actionData, navigate]);
+    }, [actionData]);
 
     const handleFormSubmit = () => {
         setShowErrorModal(false);

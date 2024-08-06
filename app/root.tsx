@@ -8,10 +8,9 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import moment from "moment";
-import "moment/locale/pt-br"; // Importa o locale pt-br
+import "moment/locale/pt-br"; 
 import "./tailwind.css";
 
-// Configura o locale globalmente
 moment.locale("pt-br");
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -33,5 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <Outlet />
+  );
 }

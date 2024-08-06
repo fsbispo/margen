@@ -8,7 +8,6 @@ export function Navbar() {
           Margen
         </div>
         <div className="space-x-4">
-          <Link to="/" className="hover:bg-gray-700 px-3 py-2 rounded">Home</Link>
           <Link to="/logout" className="hover:bg-gray-700 px-3 py-2 rounded">Sair</Link>
         </div>
       </div>

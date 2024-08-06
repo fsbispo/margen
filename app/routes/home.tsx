@@ -7,36 +7,53 @@ import { Table } from '~/components/table';
 import Filter from '~/components/filter';
 import Footer from '~/components/footer';
 import { ExamType } from '~/enumerators/ExamType';
+import { RecordResponse } from '~/interfaces/IRecord';
+import { Clinic } from '~/enumerators/Clinic';
+import { LoaderFunction, json, redirect } from '@remix-run/node';
+import { getSession } from '~/sessions';
+import { verifyToken } from '~/utils/auth.server';
 
 const MySwal = withReactContent(Swal);
 
-export default function Index() {
+export const loader: LoaderFunction = async ({ request }) => {
+  const session = await getSession(request.headers.get("Cookie"));
+  const token = session.get("token");
+
+  if (!token || !await verifyToken(token)) {
+    return redirect("/login"); 
+  }
+
+  return null;
+};
+
+export default function Home() {
   const [view, setView] = useState<'table' | 'reports'>('table');
-  const [records, setRecords] = useState<any[]>([]);
-  const [clinicType, setClinicType] = useState<number>(0); // Estado para armazenar o tipo de clínica
+  const [records, setRecords] = useState<RecordResponse[]>([]);
+  const [clinic, setClinic] = useState<number>(0);
+
+  const fetchRecords = async () => {
+    try {
+      const response = await fetch(`/records?type=${clinic}`);
+      const result = await response.json();
+      
+      if (response.ok) {
+        setRecords(result);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      MySwal.fire({
+        title: 'Erro!',
+        text: error.message,
+        icon: 'error',
+      });
+    }
+  };
 
   useEffect(() => {
-    const fetchRecords = async () => {
-      try {
-        const response = await fetch(`/records?type=${clinicType}`);
-        const result = await response.json();
-        
-        if (response.ok) {
-          setRecords(result);
-        } else {
-          throw new Error(result.error);
-        }
-      } catch (error: any) {
-        MySwal.fire({
-          title: 'Erro!',
-          text: error.message,
-          icon: 'error',
-        });
-      }
-    };
 
     fetchRecords();
-  }, [clinicType]); // Dependência adicionada para o tipo de clínica
+  }, [clinic]); 
 
   const openCreateModal = async () => {
     const { value: formData } = await MySwal.fire({
@@ -52,10 +69,11 @@ export default function Index() {
     <option value="${ExamType.COMPLEMENTARES}">Exame complementar</option>
   </select>
   <select id="swal-input5" class="swal2-input w-5/6 border border-gray-300 rounded-md">
-    <option value="0">São José dos Campos</option>
-    <option value="1">Jacareí</option>
+    <option value="-1" disabled selected>Selecione uma clínica</option>
+    <option value="${Clinic.SJC}">São José dos Campos</option>
+    <option value="${Clinic.JACAREI}">Jacareí</option>
   </select>
-  <input id="swal-input6" type="datetime-local" class="swal2-input w-5/6">
+  <input id="swal-input6" type="datetime-local" step="2"class="swal2-input w-5/6">
 </div>
       `,
       focusConfirm: false,
@@ -66,15 +84,27 @@ export default function Index() {
         const clinic = parseInt((document.getElementById('swal-input5') as HTMLSelectElement).value, 10);
         const entryAt = (document.getElementById('swal-input6') as HTMLInputElement).value;
 
-        if (!name || !company || type === "-1" || !clinic || !entryAt) {
-          Swal.showValidationMessage('Por favor, preencha todos os campos!');
+        if (!name) {
+          Swal.showValidationMessage('Preencha o nome do paciente!');
+          return false;
+        }
+
+        if (type === "-1") {
+          Swal.showValidationMessage('Selecione um tipo de exame!');
+          return false;
+        }
+
+        if (!entryAt) {
+          Swal.showValidationMessage('Insira uma data de entrada!');
           return false;
         }
 
         return { name, company, type, clinic, entryAt };
       },
-      confirmButtonText: 'Salvar',
+      confirmButtonText: 'Registrar',
       cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#1D4ED8',
+      cancelButtonColor: '#6B7280',
       showCancelButton: true,
     });
 
@@ -97,7 +127,7 @@ export default function Index() {
             icon: 'success',
           });
           // Recarregar os registros após adicionar um novo
-          const updatedRecordsResponse = await fetch(`/records?type=${clinicType}`);
+          const updatedRecordsResponse = await fetch(`/records?type=${clinic}`);
           const updatedRecords = await updatedRecordsResponse.json();
           if (updatedRecordsResponse.ok) {
             setRecords(updatedRecords);
@@ -116,11 +146,12 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center">
-      <Navbar />
-      <main className="flex-grow">
+    <>
+    <Navbar />
+    <div className="min-h-screen flex flex-col justify-center w-full">
+      <main className="flex-grow w-11/12 mx-auto">
         <div className="flex justify-center">
-          <div className="flex items-center border-b border-gray-300 mb-4 mt-8 w-[95%] lg:w-[80%]">
+          <div className="flex items-center border-b border-gray-300 mb-4 mt-8 w-[100%]">
             <button
               onClick={() => setView('table')}
               className={`px-6 py-3 text-center border mr-1 border-gray-300 rounded-tl-lg rounded-tr-lg cursor-pointer 
@@ -147,11 +178,12 @@ export default function Index() {
           </div>
         </div>
         <div>
-          {view === 'table' && <Table data={records} />}
+          {view === 'table' && <Table data={records} fetchRecords={fetchRecords} />}
           {view === 'reports' && <Filter />}
         </div>
       </main>
       <Footer />
     </div>
+    </>
   );
 }

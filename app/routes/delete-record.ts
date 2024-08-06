@@ -1,7 +1,8 @@
-import { ActionFunction, json, redirect, LoaderFunction } from '@remix-run/node';
+import { ActionFunction, json, LoaderFunction, redirect } from '@remix-run/node';
 import { RecordApi } from '~/features/Record';
 import { getSession } from '~/sessions';
 import { verifyToken } from '~/utils/auth.server';
+
 
 export const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -18,12 +19,9 @@ export const action: ActionFunction = async ({ request }) => {
     const { id } = await request.json();
 
     try {
-        const record = await RecordApi.confirmRecord(id);
-        if (record) {
-            return json({ success: true, message: 'Registro confirmado com sucesso' });
-        } else {
-            return json({ success: false, message: 'Registro não encontrado' }, { status: 404 });
-        }
+        await RecordApi.deleteRecord(id);
+        
+        return json({ success: true, message: 'Registro excluído com sucesso' });
     } catch (error) {
         const errorMessage = (error instanceof Error) ? error.message : 'Erro desconhecido';
         return json({ success: false, message: errorMessage }, { status: 500 });

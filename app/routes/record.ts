@@ -1,21 +1,37 @@
-import { json } from "@remix-run/node";
 import { saveRecord } from "~/features/Record/Record.api";
 import { FormFields } from "~/types";
 import { Status } from "~/enumerators/Status";
+import { LoaderFunction, json, redirect } from '@remix-run/node';
+import { getSession } from '~/sessions';
+import { verifyToken } from '~/utils/auth.server';
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const session = await getSession(request.headers.get("Cookie"));
+  const token = session.get("token");
+
+  if (!token || !await verifyToken(token)) {
+    return redirect("/login"); 
+  }
+
+  return null;
+};
 
 export const action = async ({ request }: { request: Request }) => {
   try {
     const data: FormFields = await request.json();
 
-    // Garantir que entryAt seja uma data válida
     const entryAt = new Date(data.entryAt);
     if (isNaN(entryAt.getTime())) {
       throw new Error("Data e hora inválidas para entryAt");
     }
 
-    // Garantir que confirmedAt e permanence sejam válidos, se estiverem presentes
     const confirmedAt = data.confirmedAt ? new Date(data.confirmedAt) : null;
-    const permanence = data.permanence ? new Date(data.permanence) : null;
+    let permanence: number | null = null;
+
+    if (confirmedAt) {
+      const duration = (confirmedAt.getTime() - entryAt.getTime()) / 1000;
+      permanence = Math.round(duration); 
+    }
 
     // Converter clinic e type para inteiros
     const clinic = parseInt(data.clinic as unknown as string, 10);
@@ -25,15 +41,12 @@ export const action = async ({ request }: { request: Request }) => {
       throw new Error("Dados inválidos");
     }
 
-    // Atualizar valores e garantir que observation não seja null ou undefined
     data.type = type;
     data.status = Status.PENDENTE;
     data.entryAt = entryAt;
     data.confirmedAt = confirmedAt;
-    data.permanence = permanence;
+    data.permanence = permanence; // Definido como número de segundos ou null
     data.observation = data.observation ?? ''; // Define observation como string vazia se for null ou undefined
-
-    console.log(data);
 
     // Salvar o registro
     const record = await saveRecord(data);

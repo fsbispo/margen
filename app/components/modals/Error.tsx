@@ -10,7 +10,7 @@ const ErrorModal: React.FC<ErrorModalProps> = ({ error }) => {
         Swal.fire({
             icon: 'error',
             title: error,
-            confirmButtonColor: '#007bff', 
+            confirmButtonColor: '#1D4ED8', 
         });
     }
 
